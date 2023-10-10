@@ -52,7 +52,8 @@ contract Raffle is VRFConsumerBaseV2 {
     error Raffle__UpkeepNotNeeded(
         uint256 actualBalance,
         uint numberOfPlayers,
-        RaffleState raffleState
+        RaffleState raffleState,
+        bytes32 errorCode
     );
 
     // Type declarations
@@ -103,7 +104,7 @@ contract Raffle is VRFConsumerBaseV2 {
     }
 
     function enterRaffle() external payable {
-        if (msg.value >= i_entranceFee) {
+        if (msg.value < i_entranceFee) {
             revert Raffle__NotEnoughEthSent();
         }
         if (s_raffleState != RaffleState.OPEN) {
@@ -121,45 +122,48 @@ contract Raffle is VRFConsumerBaseV2 {
      * 2. The raffle is OPEN
      * 3. There are players participating in the raffle
      * 4. (Implicid) The subscription is paid with $LINK
+     * In case of not needing an upkeep there's an error called Raffle__UpkeepNotNeeded
+     * and the last 'topic' is an error code that could help debugging
      * @return upkeepNeeded boolean that determines if it's necesary to perfom
      * the automation
      */
     function checkUpkeep(
         bytes memory /* checkData */
-    ) public view returns (bool upkeepNeeded, bytes memory /* checkData */) {
+    ) public view returns (bool upkeepNeeded, bytes32 /* checkData */) {
         bool minimumTimePassed = (block.timestamp - s_lastTimeStamp) >=
             i_interval;
 
         // Check minimum time
         if (!minimumTimePassed) {
-            return (false, "0x0");
+            return (false, "1");
         }
 
         // check if there's a minimum of 1 players
-        if (s_players.length < 1) {
-            return (false, "0x0");
+        if (s_players.length == 0) {
+            return (false, "2");
         }
 
         // check Raffle State
         if (s_raffleState != RaffleState.OPEN) {
-            return (false, "0x0");
+            return (false, "3");
         }
 
         // check if there's a balance in the contract
-        if (address(this).balance > 0) {
-            return (false, "0x0");
+        if (address(this).balance == 0) {
+            return (false, "4");
         }
 
-        return (true, "0x0");
+        return (true, "0");
     }
 
     function performUpKeep(bytes calldata /* performData */) external {
-        (bool upkeepNeeded, ) = checkUpkeep("");
+        (bool upkeepNeeded, bytes32 codeError) = checkUpkeep("");
         if (!upkeepNeeded) {
             revert Raffle__UpkeepNotNeeded(
                 address(this).balance,
                 s_players.length,
-                s_raffleState
+                s_raffleState,
+                codeError
             );
         }
 
@@ -168,15 +172,15 @@ contract Raffle is VRFConsumerBaseV2 {
         }
         s_raffleState = RaffleState.CLOSE;
 
-        // uint256 requestId =
-
-        i_vrfCoordinator.requestRandomWords(
+        uint256 requestId = i_vrfCoordinator.requestRandomWords(
             i_gasLane, // gas lane
             i_subscriptionId,
             REQUEST_CONFIRMATION,
             i_callbackGasLimit,
             NUMBER_OF_WORDS
         );
+
+        
     }
 
     function fulfillRandomWords(
@@ -207,7 +211,35 @@ contract Raffle is VRFConsumerBaseV2 {
         return s_players[index];
     }
 
+    function getLastWinner() external view returns (address) {
+        return s_lastWinner;
+    }
+
     function getRaffeState() external view returns (RaffleState) {
         return s_raffleState;
+    }
+
+    function getInterval() external view returns (uint interval) {
+        return i_interval;
+    }
+
+    function getGasLane() external view returns (bytes32 gasLane) {
+        return i_gasLane;
+    }
+
+    function getVrfCoordinator()
+        external
+        view
+        returns (address vrfCoordinator)
+    {
+        return address(i_vrfCoordinator);
+    }
+
+    function getSubscriptionId() external view returns (uint64) {
+        return i_subscriptionId;
+    }
+
+    function getCallbackGasLimit() external view returns (uint32) {
+        return i_callbackGasLimit;
     }
 }

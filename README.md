@@ -23,6 +23,3 @@ This code is to create a random snart contract lottery, this is achived with Cha
   1. Work local Chain    (Chainlink Automation) ?
   2. Fork Testnet
   3. Fork Mainnet
-
-
-4:46:00

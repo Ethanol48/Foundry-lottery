@@ -1,5 +1,7 @@
 # Random Raffle Contract
 
+This project is still under development, this file is used to track what features is to be implemented
+
 ## About
 
 This code is to create a random snart contract lottery, this is achived with Chainlink VRF
@@ -20,6 +22,6 @@ This code is to create a random snart contract lottery, this is achived with Cha
 
 1. Write deploy scripts
 2. Write our tests
-  1. Work local Chain    (Chainlink Automation) ?
+  1. Work local Chain
   2. Fork Testnet
   3. Fork Mainnet

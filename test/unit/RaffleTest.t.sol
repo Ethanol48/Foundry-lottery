@@ -132,9 +132,9 @@ contract RaffleTest is Test {
     }
 
 
-    function testCheckUpkeepReturnsFalseWhenTimeHasNotPassed() public {
+    function testCheckUpkeepReturnsFalseWhenTimeHasNotPassed() public view {
         // Pass less time that what is required
-        vm.warp(block.timestamp + 10);
+        // vm.warp(block.timestamp + interval + 100);
 
         // boolean representing if the contract needs to be called
         (bool isUpkeepNeeded, ) = raffle.checkUpkeep("");

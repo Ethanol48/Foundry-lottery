@@ -117,7 +117,7 @@ contract RaffleTest is Test {
     }
 
     /*
-     *   Others
+     *   Check Perform Upkeep
      */
 
     function testCheckUpkeepReturnsFalseWhenBalanceIsEmpty() public {
@@ -131,7 +131,6 @@ contract RaffleTest is Test {
         assert(!isUpkeepNeeded);
     }
 
-
     function testCheckUpkeepReturnsFalseWhenTimeHasNotPassed() public view {
         // Pass less time that what is required
         // vm.warp(block.timestamp + interval + 100);
@@ -141,6 +140,25 @@ contract RaffleTest is Test {
 
         // isUpkeepNeeded should be false
         assert(!isUpkeepNeeded);
+    }
+
+    /*
+     *   Test Perform Upkeep
+     */
+
+    function testPerformUpkeepWhenEnoughTimeHasPassed() public {
+
+        // Add players to raffle
+        for (uint256 i = 0; i < players.length; i++) {
+            vm.prank(players[i]);
+            raffle.enterRaffle{value: entranceFee}();
+        }
+        
+        // Let pass the interval
+        vm.warp(block.timestamp + interval + 100);
+        
+        raffle.checkUpkeep("");
+
     }
 
     /*
